@@ -8,7 +8,7 @@ typedef struct classifier_s {
     char** vowels_and_consonants;
 	char* string;
 } classifier_t;
-//FELIPE TROLA 
+
 /*
     La función deberá configurar el campo vowels_and_consonants como corresponde.
     Esto es: Que en el primer array (indicado por vowels_and_consonants[0]) queden

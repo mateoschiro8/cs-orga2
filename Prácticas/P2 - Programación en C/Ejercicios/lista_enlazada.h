@@ -1,7 +1,6 @@
 #ifndef __LISTA_ENLAZADA_H__
 #define __LISTA_ENLAZADA_H__
 
-
 #include <stdint.h>
 #include <stddef.h>
 
