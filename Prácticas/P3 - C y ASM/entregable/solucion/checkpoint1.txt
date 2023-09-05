@@ -1,0 +1,27 @@
+a) Es un contrato que se establece de forma que todos los programadores cumplan con una serie de normas establecidas para garantizar que los llamados entre funciones/bibliotecas se hagan de cierta manera, y que por lo tanto, por ejemplo, hay ciertos registros que preservan valores, etc.
+
+En 32 bits la ABI no permite el uso de registros para pasar parametros, se hace todo con el stack. 
+
+En 64 bits la ABI permite el uso de registros para pasar parametros ademas del stack. Los parametros se pasan en primera instancia a los registros respetando un orden, y luego se pasan al stack pusheando de derecha a izquierda los parametros. 
+
+b) El programador.
+
+c) El stack frame es una porcion del stack que corresponde a una funcion determinada. Prologo se le dice al codigo que da inicio a la ejecucion de una funcion, y se encarga de reservar espacio en el stack para valores temporales de la funcion, guardar el anterior base pointer y actualizarlo con el nuevo valor que adquiere al hacer el call.
+
+El epilogo va al final de la funcion y se encarga de dejar el stack, base pointer anterior y todos los parametros como se encontraban antes de hacer el call.
+
+d) Se mueve el sp de modo que quede reservado el lugar necesario en el stack y luego se usa ese espacio para guardarlas.
+
+e) 16 bytes. Una vez ejecutada la primera instruccion de la funcion (push rbp) el stack queda alineado.
+
+f) 1) Aunque el puntero va a quedar en el mismo registro, va a cambiar el orden a,r,g,b, por lo tanto al llamar a la funcion void los valores van a ser leidos de forma erronea
+
+2) El programa va a leer el tamanio como si fuera la direccion de memoria, entonces va a ir a esa posicion de memoria y se va a mover tantas posiciones como indique el valor del puntero.
+
+3) No cambia nada?, porque el valor de retorno es guardado en el mismo registro aunque tenga mayor cantidad de bits.
+
+4) En terminos de registros nada?, sin embargo en la memoria si los users estan organizados sin espacios entre si, al cambiar uno de 16 a 64 bits van a quedar espacios de memoria desaprovechados entre usuarios que se actualizaron.
+
+5) Al ser un float y un int, los numeros se van a interpretar de manera erronea ? O no cambia nada porque los floats e ints se guardan en registros distintos? 
+
+6) Podemos tener errores en el orden al pushear los parametros al stack, se puede desalinear el stack en caso de que se agreguen o saquen parametros, errores al devolver el valor 
