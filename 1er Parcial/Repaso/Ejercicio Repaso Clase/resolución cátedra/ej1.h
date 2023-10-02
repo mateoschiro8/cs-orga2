@@ -11,19 +11,26 @@
 //*************************************
 //Declaración de estructuras
 //*****
-#define USE_ASM_IMPL 1
+#define USE_ASM_IMPL 0
 
-typedef struct pago {
-  uint8_t monto;
-  char* comercio;
-  uint8_t cliente;
-  uint8_t aprobado;
-} pago_t; 
+typedef struct pago {     // size     ofsset
+  uint8_t monto;          //  1         0
+  char* comercio;         //  8         8
+  uint8_t cliente;        //  1         16
+  uint8_t aprobado;       //  1         17
+} pago_t;                 // total: 24        
+
 
 uint32_t* acumuladoPorCliente(uint8_t cantidadDePagos, pago_t* arr_pagos);
 uint32_t* acumuladoPorCliente_asm(uint8_t cantidadDePagos, pago_t* arr_pagos);
 
 uint8_t en_blacklist(char* comercio, char** lista_comercios, uint8_t n);
 uint8_t en_blacklist_asm(char* comercio, char** lista_comercios, uint8_t n);
+
+// Para la siguiente funcion, notar que son muchos parametros, pero fijense que simplemente son dos arrays con sus respectivos tamanos.
 pago_t** blacklistComercios(uint8_t cantidad_pagos, pago_t* arr_pagos, char** arr_comercios, uint8_t size_comercios);
 pago_t** blacklistComercios_asm(uint8_t cantidad_pagos, pago_t* arr_pagos, char** arr_comercios, uint8_t size_comercios);
+
+// Una version agregada (que no pertencecia al examen original), donde no se puede confiar en que la memoria perteneciente a los
+// pagos es valida. Para cada pago que pertenezca a la blacklist, no tenemos garantias de que la memoria 'sobreviva'.
+pago_t** blacklistComercios_V2(uint8_t cantidad_pagos, pago_t* arr_pagos, char** arr_comercios, uint8_t size_comercios);

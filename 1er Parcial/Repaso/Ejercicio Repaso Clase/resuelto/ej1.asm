@@ -1,232 +1,269 @@
-; exportamos:
 global acumuladoPorCliente_asm
 global en_blacklist_asm
 global blacklistComercios_asm
 
-; importamos:
-extern calloc
-extern strcmp
-
-; definimos:
-%define OFFSET_MONTO 	0
-%define OFFSET_COMERCIO 8
-%define OFFSET_CLIENTE  16
-%define OFFSET_APROBADO 17
-
-%define SIZE_PAGO_T		24
-%define SIZE_UIN32_T    4
-%define SIZE_POINTER 	8
-%define NULL			0
-
-
 ;########### SECCION DE TEXTO (PROGRAMA)
 section .text
 
-;uint32_t* acumuladoPorCliente(uint8_t cantidadDePagos, pago_t* arr_pagos)
-; RDI -> cantidadDePagos . RSI -> arr_pagos
+extern calloc
+extern strcmp
+
+;<<<REMOVE>>>
+; extern acumuladoPorCliente
+extern en_blacklist
+extern blacklistComercios
+;<<<REMOVE END>>>
+
+;   typedef struct pago {
+;       uint8_t monto;              1 byte
+;       char* comercio;             8 bytes
+;       uint8_t cliente;            1 byte
+;       uint8_t aprobado;           1 byte
+;   } pago_t; 
+
+; Defino los offsets
+%define offsetMonto     0
+%define offsetComercio  8
+%define offsetCliente   16
+%define offsetAprobado  17
+%define tamañoPago      24
+
+; uint32_t* acumuladoPorCliente(uint8_t cantidadDePagos, pago_t* arr_pagos)
+;   cantidadDePagos -> rdi
+;   arr_pagos -> rsi
+
 acumuladoPorCliente_asm:
-	push rbp
-	mov rbp, rsp
+    push rbp
+    mov rbp, rsp
 
-	push r12
-	push r13
-	push r15
-	sub rsp, 8			; alineamos la pila
+    ; Pusheo los registros que voy a usar
+    push r12
+    push r13
+    push r14 
+    push r15
 
-	mov r12, rdi		; r12 <- cantidadDePagos
-	mov r13, rsi		; r13 <- arr_pagos
+    ; Guardo los parámetros en registros aparte
+    mov r14, rdi  ; cantidadDePagos
+    mov r15, rsi  ; arr_pagos
 
-	mov rdi, 10
-	mov rsi, SIZE_UIN32_T
-	call calloc
+    ; Pido la memoria, 10 unidades de 32 bits (4 bytes) iniciadas en 0
+    mov rdi, 10
+    mov rsi, 4
+    call calloc
 
-	xor r15, r15  		; a r15 lo usaremos para guardarnos el pago_i.cliente
-	xor rdi, rdi		; a rdi lo usaremos para el pago_i.monto
+    ; Tengo en rax el puntero al arreglo de clientes
 
-	xor rcx, rcx 		; inicializamos iterador ciclo en 0
+    ; Pongo en 0 los registros a utilizar
+    xor r12, r12
+    xor rdi, rdi
 
-	.ciclo:
-		cmp rcx, r12
-		jge .finCiclo
+    ciclo1:
 
-		cmp byte [r13 + OFFSET_APROBADO], 1 ; if (pago_i.aprobado == 1)
-		jne .proxIteracion
+        ; Comparo la cantidad de pagos que me quedan
+        cmp r14, 0
+        je end
 
-		; Esto esta mal! Pensar por que se rompe:
-		;mov r15, [r13 + OFFSET_CLIENTE] 	; r15b <- pago_i.cliente
-		;mov rdi, [r13 + OFFSET_MONTO]		; rdi <- pago_i.monto
-		;add [rax + r15 * OFFSET_MONTO], rdi	; directamente vamos trabajando con el rax
+        ; Me fijo si está aprobado
+        cmp byte [r15 + offsetAprobado], 1
 
-		;Forma correcta:
-		mov r15b, [r13 + OFFSET_CLIENTE] 	; r15b <- pago_i.cliente
-		mov dil, [r13 + OFFSET_MONTO]		; dil <- pago_i.monto
-		add [rax + r15 * SIZE_UIN32_T], dil	; directamente vamos trabajando con el rax
+        ; Si no está aprobado, paso al que sigue
+        jne proxIteracion
+
+        ; Si está aprobado, obtengo los datos
+        mov r12b, [r15 + offsetCliente]      ; Cliente
+        mov dil, [r15 + offsetMonto]         ; Monto
+
+        ; Actualizo el monto
+        add [rax + r12 * 4], dil
+
+        proxIteracion:
+            ; Disminuyo la cantidad de pagos restantes y avanzo el puntero
+            sub r14, 1
+            add r15, tamañoPago
+            jmp ciclo1
+
+    end: 
+        pop r15
+        pop r14
+        pop r13
+        pop r12 
+
+        pop rbp
+	    ret
 
 
-		.proxIteracion:
-		inc rcx
-		add r13, SIZE_PAGO_T
-		jmp .ciclo
-
-	.finCiclo:
-
-	add rsp, 8		
-	pop r15
-	pop r13
-	pop r12
-	pop rbp
-	ret
-
-; uint8_t en_blacklist(char* comercio, char** lista_comercios, uint8_t n)
-; RDI -> comercio . RSI -> lista_comercios . RDX -> n
+; cuint8_t en_blacklist(char* comercio, char** lista_comercios, uint8_t n);
+;   comercio -> rdi
+;   lista_comercio -> rsi
+;   n -> rdx
 en_blacklist_asm:
-	push rbp
-	mov rbp, rsp
-	push r12
-	push r13
-	push r14
-
-	mov r12, rdi		; r12 <- comercio
-	mov r13, rsi		; r13 <- lista_comercios
-	mov r14, rdx		; r14 <- n
-
-	xor r15, r15
-
-	.ciclo:
-		cmp r15, r14
-		jge .finCiclo
-
-		mov rdi, r12 		; <- Que pasaria si sacasemos esta linea (total, el rdi que nos llega a nosotros seria el mismo que el que le pasamos
-							; a strcmp)   [Respuesta en respuestas.txt 2)a), primero pensarla!]
-		mov rsi, [r13]
-		call strcmp			
-
-		cmp rax, 0
-		je .encontrado
-
-		.proxIteracion:
-		inc r15
-		add r13, SIZE_POINTER
-		jmp .ciclo
+    push rbp
+    mov rbp, rsp
 	
-	.finCiclo:
-		xor rax, rax
-		jmp .fin
-	.encontrado:
-		mov rax, 1
+    push r12
+    push r13
+    push r14
 
-	.fin:
-	pop r14
-	pop r13
-	pop r12
-	pop rbp
-	ret
+    sub rsp, 8
 
-; Funcion auxiliar para blacklistComercios_asm. Mismos parametros (y mismo orden)
-contar_en_blacklist:
-	push rbp
-	mov rbp, rsp
-	push r12
-	push r13
-	push r14
-	push r15
-	push rbx
+    mov r12, rdi  ; Comercio a chequear
+    mov r13, rsi  ; Lista de comercios
+    mov r14, rdx  ; Cantidad de comercios
 
-	mov r12, rdi 	; r12 -> cantidad_pagos
-	mov r13, rsi	; r13 -> arr_pagos
-	mov r14, rdx	; r14 -> arr_comercios
-	mov r15, rcx	; r15 -> size_comercios
+    xor rax, rax
 
-	xor rbx, rbx	; variable contador
-	.ciclo:
-		cmp r12, 0
-		je .finCiclo
+    ciclo: 
 
-		mov rdi, [r13 + OFFSET_COMERCIO]
-		mov rsi, r14
-		mov rdx, r15
-		call en_blacklist_asm		; en_blacklist(arr_pagos[i].comercio, arr_comercios, size_comercios)
-		cmp rax, 1
-		jne .proxIteracion
+        ; Comparo las palabras restantes
+        cmp r14, 0
+        je noEncontre
 
-		;; cuerpo if
-		inc rbx
-		;;
+        ; Disminuyo la cantidad de restantes (para poder usarlo para indexar)
+        sub r14, 1
 
-		.proxIteracion:
-		dec r12
-		add r13, SIZE_PAGO_T
-		jmp .ciclo
+        ; Comparo la string
+        mov rdi, r12
+        mov rsi, [r13 + r14]
+        call strcmp
 
-	.finCiclo:
+        ; Comparo si ya encontré un match
+        cmp rax, 0
+        je encontre
+        jmp ciclo
 
-	; el resultado nos quedo en rbx, lo movemos a rax para retornarlo:
-	mov rax, rbx
+    encontre:
+        mov rax, 1
+        jmp end2
 
-	.fin:
-	pop rbx
-	pop r15
-	pop r14
-	pop r13
-	pop r12
-	pop rbp
-	ret
+    noEncontre:
+        mov rax, 0
+        jmp end2
 
+    end2:
 
-;pago_t** blacklistComercios(uint8_t cantidad_pagos, pago_t* arr_pagos, char** arr_comercios, uint8_t size_comercios)
-; RDI -> cantidad_pagos . RSI -> arr_pagos . RDX -> arr_comercios . RCX -> size_comercios
+        add rsp, 8
+
+        pop r14
+        pop r13
+        pop r12
+
+        pop rbp
+        ret
+
+;(uint8_t cantidad_pagos, pago_t* arr_pagos, char** arr_comercios, uint8_t size_comercios)
+;   cantidad_pagos  -> rdi
+;   arr_pagos       -> rsi 
+;   arr_comercios   -> rdx
+;   size_comercios  -> rcx
+pagosEnBlacklist:       ; Auxiliar, mismos parámetros que blacklist_comercios
+    push rbp
+    mov rbp, rsp
+	
+    push r12
+    push r13
+    push r14
+    push r15
+    push rbx
+    sub rsp, 8
+
+    mov r12, rdi    ; cantidad_pagos
+    mov r13, rsi    ; arr_pagos
+    mov r14, rdx    ; arr_comercios
+    mov r15, rcx    ; size_comercios
+
+    xor rbx, rbx
+
+    ciclo3:
+        ; Comparo los pagos restantes
+        cmp r12, 0
+        je end5
+
+        sub r12, 1
+
+        ; uint8_t en_blacklist(char* comercio, char** lista_comercios, uint8_t n);
+        mov rdi, [r13 + offsetComercio + r12]
+        mov rsi, r14
+        mov rdx, r15
+        call en_blacklist_asm
+        add rbx, rax
+
+        jmp ciclo3
+
+    end5:
+
+        add rsp, 8
+        pop rbx
+        pop r15
+        pop r14
+        pop r13
+        pop r12
+
+        pop rbp
+        ret
+
+; pago_t** blacklistComercios(uint8_t cantidad_pagos, pago_t* arr_pagos, char** arr_comercios, uint8_t size_comercios)
+;   cantidad_pagos  -> rdi
+;   arr_pagos       -> rsi 
+;   arr_comercios   -> rdx
+;   size_comercios  -> rcx
 blacklistComercios_asm:
-	push rbp
-	mov rbp, rsp
-	push r12
-	push r13
-	push r14
-	push r15
-	push rbx
+    push rbp
+    mov rbp, rsp
+	
+    push r12
+    push r13
+    push r14
+    push r15
+    push rbx
+    sub rsp, 8
 
-	mov r12, rdi 	; r12 -> cantidad_pagos
-	mov r13, rsi	; r13 -> arr_pagos
-	mov r14, rdx	; r14 -> arr_comercios
-	mov r15, rcx	; r15 -> size_comercios
+    mov r12, rdi    ; cantidad_pagos
+    mov r13, rsi    ; arr_pagos
+    mov r14, rdx    ; arr_comercios
+    mov r15, rcx    ; size_comercios
 
-	call contar_en_blacklist		; contar_en_blacklist recibe los mismos parametros
-	mov rdi, rax
-	mov rsi, SIZE_POINTER
-	call calloc
-	mov rbx, rax
+    call pagosEnBlacklist
+        
+    ; Pido la memoria necesaria
+    mov rdi, rax
+    mov rsi, 8
+    call calloc
+    
+    mov rbx, rax
 
-	xor rbx, rbx					; Variable contador.
+    ciclo4:
+        ; Comparo los pagos restantes
+        cmp r12, 0
+        je end3
 
-	.ciclo:							; Practicamente igual que contar_en_blacklist
-									; solo cambia lo que hacemos en el cuerpo del if.
+        sub r12, 1
 
-		cmp r12, 0
-		je .finCiclo
+        ; uint8_t en_blacklist(char* comercio, char** lista_comercios, uint8_t n);
+        mov rdi, [r13 + offsetComercio + r12]
+        mov rsi, r14
+        mov rdx, r15
+        call en_blacklist_asm
+            
+        cmp rax, 1
+        jne finCiclo4
 
-		mov rdi, [r13 + OFFSET_COMERCIO]
-		mov rsi, r14
-		mov rdx, r15
-		call en_blacklist_asm		
-		cmp rax, 1
-		jne .proxIteracion 			
-		
-		;; cuerpo if
-		mov [rbx], r13
-		add rbx, SIZE_POINTER
-		;;
+        mov [rbx], r13
+        add rbx, 8
 
-		.proxIteracion:
-		dec r12
-		add r13, SIZE_PAGO_T
-		jmp .ciclo
+        finCiclo4:
+            add r13, tamañoPago
+            jmp ciclo4
 
-	.finCiclo:
-	mov rax, rbx
+    end3:
 
-	pop rbx
-	pop r15
-	pop r14
-	pop r13
-	pop r12
-	pop rbp
-	ret
+        mov rax, rbx
+        
+        add rsp, 8
+        pop rbx
+        pop r15
+        pop r14
+        pop r13
+        pop r12
+
+        pop rbp
+        ret
