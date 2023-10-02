@@ -1,0 +1,11 @@
+
+
+ 2) a) La primera iteracion no pasaria nada, pero ya para la segunda, no podremos confiar mas en el valor de rdi, es no volatil!
+  Por lo tanto, si strcmp lo uso, nos vendra 'sucio' por lo que strcmp seguramente fallara.
+
+ 2) b) Recordar que los strings en C son punteros! Por lo tanto si hiciesemos:
+        if (comercio == comercio_i)
+    Estariamos comparando punteros y no a los que ellos apuntan, que es lo que quisieramos.
+
+
+ 3) a) Despues al querer hacer free de cada elem de res no sabremos cuantos hay.

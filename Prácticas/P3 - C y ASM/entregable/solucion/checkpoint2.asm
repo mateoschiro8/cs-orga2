@@ -14,6 +14,7 @@ global alternate_sum_8
 global product_2_f
 global alternate_sum_4_using_c
 global product_9_f
+
 ;########### DEFINICION DE FUNCIONES
 ; uint32_t alternate_sum_4(uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4);
 ; registros: x1[?], x2[?], x3[?], x4[?]
@@ -75,6 +76,7 @@ alternate_sum_4_using_c:
 ; uint32_t alternate_sum_4_simplified(uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4);
 ; registros: x1[?], x2[?], x3[?], x4[?]
 alternate_sum_4_simplified:
+
 	mov rax, rdi
 	sub rax, rsi
 	add rax, rdx
@@ -154,7 +156,7 @@ product_9_f:
     cvtss2sd xmm5, xmm5      ; Convierte f6 a double y lo guarda en xmm5
     cvtss2sd xmm6, xmm6      ; Convierte f7 a double y lo guarda en xmm6
     cvtss2sd xmm7, xmm7      ; Convierte f8 a double y lo guarda en xmm7
-	cvtss2sd xmm8, [rbp + 0x30]      ; Convierte f9 a double y lo guarda en xmm7
+	cvtss2sd xmm8, [rbp + 0x30]      ; Convierte f9 a double y lo guarda en xmm8
 
 	;multiplicamos los doubles en xmm0 <- xmm0 * xmm1, xmmo * xmm2 , ...  
 	mulsd xmm0, xmm1         ; xmm1 = xmm1 * xmm1
