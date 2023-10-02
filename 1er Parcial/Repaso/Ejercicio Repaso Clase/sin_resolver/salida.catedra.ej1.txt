@@ -1,0 +1,196 @@
+== Ejercicio 1a ==
+
+Cliente 1: 2
+Cliente 2: 11
+Cliente 3: 10
+Cliente 4: 1
+Cliente 5: 11
+Cliente 6: 0
+Cliente 7: 5
+Cliente 8: 15
+Cliente 9: 0
+Cliente 10: 8
+Cliente 1: 11
+Cliente 2: 0
+Cliente 3: 23
+Cliente 4: 11
+Cliente 5: 1
+Cliente 6: 5
+Cliente 7: 0
+Cliente 8: 0
+Cliente 9: 0
+Cliente 10: 0
+Cliente 1: 0
+Cliente 2: 11
+Cliente 3: 13
+Cliente 4: 0
+Cliente 5: 16
+Cliente 6: 11
+Cliente 7: 6
+Cliente 8: 5
+Cliente 9: 15
+Cliente 10: 0
+Cliente 1: 15
+Cliente 2: 0
+Cliente 3: 3
+Cliente 4: 0
+Cliente 5: 7
+Cliente 6: 0
+Cliente 7: 1
+Cliente 8: 10
+Cliente 9: 2
+Cliente 10: 6
+== Ejercicio 1b ==
+
+Pago 1 monto: 6
+Pago 1 cliente: 2
+Pago 1 aprobado: 1
+Pago 1 comercio: adidas
+Pago 2 monto: 3
+Pago 2 cliente: 8
+Pago 2 aprobado: 0
+Pago 2 comercio: adidas
+Pago 3 monto: 4
+Pago 3 cliente: 7
+Pago 3 aprobado: 1
+Pago 3 comercio: adidas
+Pago 4 monto: 3
+Pago 4 cliente: 8
+Pago 4 aprobado: 0
+Pago 4 comercio: coto
+Pago 5 monto: 2
+Pago 5 cliente: 2
+Pago 5 aprobado: 0
+Pago 5 comercio: zara
+Pago 6 monto: 7
+Pago 6 cliente: 6
+Pago 6 aprobado: 0
+Pago 6 comercio: zara
+Pago 7 monto: 2
+Pago 7 cliente: 5
+Pago 7 aprobado: 0
+Pago 7 comercio: adidas
+Pago 8 monto: 11
+Pago 8 cliente: 5
+Pago 8 aprobado: 1
+Pago 8 comercio: adidas
+Pago 1 monto: 1
+Pago 1 cliente: 9
+Pago 1 aprobado: 1
+Pago 1 comercio: coto
+Pago 2 monto: 11
+Pago 2 cliente: 4
+Pago 2 aprobado: 1
+Pago 2 comercio: zara
+Pago 3 monto: 9
+Pago 3 cliente: 3
+Pago 3 aprobado: 0
+Pago 3 comercio: adidas
+Pago 4 monto: 2
+Pago 4 cliente: 1
+Pago 4 aprobado: 1
+Pago 4 comercio: zara
+Pago 5 monto: 11
+Pago 5 cliente: 1
+Pago 5 aprobado: 0
+Pago 5 comercio: adidas
+Pago 6 monto: 4
+Pago 6 cliente: 9
+Pago 6 aprobado: 0
+Pago 6 comercio: coto
+Pago 7 monto: 1
+Pago 7 cliente: 3
+Pago 7 aprobado: 0
+Pago 7 comercio: coto
+Pago 8 monto: 4
+Pago 8 cliente: 2
+Pago 8 aprobado: 1
+Pago 8 comercio: coto
+Pago 9 monto: 2
+Pago 9 cliente: 3
+Pago 9 aprobado: 1
+Pago 9 comercio: zara
+Pago 1 monto: 8
+Pago 1 cliente: 5
+Pago 1 aprobado: 1
+Pago 1 comercio: adidas
+Pago 2 monto: 5
+Pago 2 cliente: 6
+Pago 2 aprobado: 0
+Pago 2 comercio: coto
+Pago 3 monto: 11
+Pago 3 cliente: 3
+Pago 3 aprobado: 1
+Pago 3 comercio: zara
+Pago 4 monto: 5
+Pago 4 cliente: 2
+Pago 4 aprobado: 1
+Pago 4 comercio: adidas
+Pago 5 monto: 5
+Pago 5 cliente: 6
+Pago 5 aprobado: 1
+Pago 5 comercio: coto
+Pago 6 monto: 9
+Pago 6 cliente: 0
+Pago 6 aprobado: 1
+Pago 6 comercio: adidas
+Pago 7 monto: 5
+Pago 7 cliente: 2
+Pago 7 aprobado: 0
+Pago 7 comercio: adidas
+Pago 8 monto: 2
+Pago 8 cliente: 8
+Pago 8 aprobado: 0
+Pago 8 comercio: zara
+Pago 9 monto: 10
+Pago 9 cliente: 6
+Pago 9 aprobado: 0
+Pago 9 comercio: adidas
+Pago 10 monto: 5
+Pago 10 cliente: 1
+Pago 10 aprobado: 0
+Pago 10 comercio: coto
+Pago 11 monto: 6
+Pago 11 cliente: 4
+Pago 11 aprobado: 1
+Pago 11 comercio: adidas
+Pago 1 monto: 8
+Pago 1 cliente: 2
+Pago 1 aprobado: 0
+Pago 1 comercio: coto
+Pago 2 monto: 1
+Pago 2 cliente: 3
+Pago 2 aprobado: 1
+Pago 2 comercio: zara
+Pago 3 monto: 8
+Pago 3 cliente: 9
+Pago 3 aprobado: 1
+Pago 3 comercio: adidas
+Pago 4 monto: 9
+Pago 4 cliente: 4
+Pago 4 aprobado: 0
+Pago 4 comercio: zara
+Pago 5 monto: 8
+Pago 5 cliente: 4
+Pago 5 aprobado: 0
+Pago 5 comercio: adidas
+Pago 6 monto: 6
+Pago 6 cliente: 2
+Pago 6 aprobado: 1
+Pago 6 comercio: zara
+Pago 7 monto: 8
+Pago 7 cliente: 1
+Pago 7 aprobado: 1
+Pago 7 comercio: zara
+Pago 8 monto: 6
+Pago 8 cliente: 2
+Pago 8 aprobado: 0
+Pago 8 comercio: zara
+Pago 9 monto: 7
+Pago 9 cliente: 6
+Pago 9 aprobado: 1
+Pago 9 comercio: coto
+Pago 10 monto: 8
+Pago 10 cliente: 7
+Pago 10 aprobado: 1
+Pago 10 comercio: zara
