@@ -55,3 +55,14 @@ pago_t** blacklistComercios(uint8_t cantidad_pagos, pago_t* arr_pagos, char** ar
     }
     return pagosBlacklist;
 }
+
+// Funcion que devuelve cant_en_blacklist
+uint8_t cantEnBlacklist(uint8_t cantidad_pagos, pago_t* arr_pagos, char** arr_comercios, uint8_t size_comercios){
+    
+    uint8_t cant_en_blacklist = 0;
+    for (int i = 0; i < cantidad_pagos; i++){
+        if (en_blacklist(arr_pagos[i].comercio, arr_comercios, size_comercios)) 
+            cant_en_blacklist++;
+    }
+    return cant_en_blacklist;
+}

@@ -7,6 +7,7 @@ section .text
 
 extern calloc
 extern strcmp
+extern cantEnBlacklist
 
 ;<<<REMOVE>>>
 ; extern acumuladoPorCliente
@@ -150,57 +151,6 @@ en_blacklist_asm:
         pop rbp
         ret
 
-;(uint8_t cantidad_pagos, pago_t* arr_pagos, char** arr_comercios, uint8_t size_comercios)
-;   cantidad_pagos  -> rdi
-;   arr_pagos       -> rsi 
-;   arr_comercios   -> rdx
-;   size_comercios  -> rcx
-pagosEnBlacklist:       ; Auxiliar, mismos parámetros que blacklist_comercios
-    push rbp
-    mov rbp, rsp
-	
-    push r12
-    push r13
-    push r14
-    push r15
-    push rbx
-    sub rsp, 8
-
-    mov r12, rdi    ; cantidad_pagos
-    mov r13, rsi    ; arr_pagos
-    mov r14, rdx    ; arr_comercios
-    mov r15, rcx    ; size_comercios
-
-    xor rbx, rbx
-
-    ciclo3:
-        ; Comparo los pagos restantes
-        cmp r12, 0
-        je end5
-
-        sub r12, 1
-
-        ; uint8_t en_blacklist(char* comercio, char** lista_comercios, uint8_t n);
-        mov rdi, [r13 + offsetComercio + r12]
-        mov rsi, r14
-        mov rdx, r15
-        call en_blacklist_asm
-        add rbx, rax
-
-        jmp ciclo3
-
-    end5:
-
-        add rsp, 8
-        pop rbx
-        pop r15
-        pop r14
-        pop r13
-        pop r12
-
-        pop rbp
-        ret
-
 ; pago_t** blacklistComercios(uint8_t cantidad_pagos, pago_t* arr_pagos, char** arr_comercios, uint8_t size_comercios)
 ;   cantidad_pagos  -> rdi
 ;   arr_pagos       -> rsi 
@@ -215,14 +165,13 @@ blacklistComercios_asm:
     push r14
     push r15
     push rbx
-    sub rsp, 8
 
     mov r12, rdi    ; cantidad_pagos
     mov r13, rsi    ; arr_pagos
     mov r14, rdx    ; arr_comercios
     mov r15, rcx    ; size_comercios
 
-    call pagosEnBlacklist
+    call cantEnBlacklist
         
     ; Pido la memoria necesaria
     mov rdi, rax
@@ -231,15 +180,18 @@ blacklistComercios_asm:
     
     mov rbx, rax
 
+    ; Me guardo el puntero al inicio, voy moviendo rbx
+    push rax
+
     ciclo4:
         ; Comparo los pagos restantes
         cmp r12, 0
         je end3
 
-        sub r12, 1
+        xor rax, rax
 
         ; uint8_t en_blacklist(char* comercio, char** lista_comercios, uint8_t n);
-        mov rdi, [r13 + offsetComercio + r12]
+        mov rdi, [r13 + offsetComercio]
         mov rsi, r14
         mov rdx, r15
         call en_blacklist_asm
@@ -252,13 +204,13 @@ blacklistComercios_asm:
 
         finCiclo4:
             add r13, tamañoPago
+            sub r12, 1
             jmp ciclo4
 
     end3:
 
-        mov rax, rbx
+        pop rax
         
-        add rsp, 8
         pop rbx
         pop r15
         pop r14
