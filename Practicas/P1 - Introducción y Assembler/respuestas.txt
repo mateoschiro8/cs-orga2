@@ -1,0 +1,88 @@
+Preguntas sobre arquitectura Intel - Grupo 2
+
+1) Entorno de ejecución
+    a) Cuál es el tamaño en bits de una dirección de memoria en Intel64 y cuál es la unidad mínima que podemos direccionar?
+        Como hay 2^64 direcciones posibles a las cuales direccionar, entonces cada dirección debe ser de 64 bits de largo.
+    La unidad mínima a la que se puede direccionar es a byte.
+
+    b) Cuántos registros de propósito general hay en Intel64 y que tamaño tienen?
+        Hay 16 régistros de propósito general, y tienen un tamaño de 64 bits cada uno.
+
+    c) Qué guarda el registro RIP? Qué tamaño tiene y por qué?
+        El registro RIP es el Instruction Pointer, y contiene la dirección donde se encuentra la próxima instrucción
+    a ejecutar. Como las direcciones son de 64 bits, el RIP debe tener ese tamaño también.  
+
+2) Flags
+    a) Qué guarda el registro EFLAGS en Intel32 y qué tamaño tiene?
+        El registro EFLAGS reporta el estado del programa siendo ejecutado, mediante flags. El registro posee 32 bits, 
+    aunque algunos de ellos están reservados y no funcionan como flags.
+
+    b) Dentro del registro, qué son los siguientes bits y en qué posición se encuentran?
+        Flag de cero: Es el bit 6, se enciende si el resultado de una operación es 0.
+        Flag de carry: Es el bit 0, se enciende si una operación aritmética genera un carry o un borrow del bit más 
+    significativo del resultado.
+        Flag de interrupciones: Ese el bit 9, se enciende para permitir las interrupciones.
+
+    c) Cómo es el registro de flags en Intel64 respecto al de Intel32?
+        En el modo de 64 bits, el registro EFLAGS es extendido a 64 bits y llamado RFLAGS. Los 32 bits inferiores son
+    iguales, y los 32 bits superiores se encuentran reservados. 
+
+3) Stack y llamadas a función
+    a) Para qué es necesaria la pila? Donde está ubicada?
+        La pila es utilizada para los llamados de procedimientos o subrutinas, y el pasaje de parámetros entre ellos.
+    Se encuentra en la memoria, es un array contiguo de posiciones.
+
+    b) Para qué sirven los registros ESP y EBP? Que consideraciones se debe tener al trabajar con ellos?
+        El registro EBP es el base pointer. Este registro marca un punto de referencia fijo donde inicia el stack frame
+    del procedimiento que está siendo ejecutado. Permite acceso fácil a las estructuras de datos pasadas en el stack,
+    al Instruction Pointer de retorno, y las variables locales agregadas al stack por el procedimiento llamado.
+        El registro ESP es el stack pointer. Este registro realiza un seguimiento del stack, y apunta al último elemento agregado. 
+    Es decir, al agregar un elemento al stack, se decrementa primero el ESP, y luego se agrega. Al quitar un elemento del stack, 
+    el procesador lee el elemento apuntado por el ESP, y luego incrementa este último. 
+    
+    c) Qué registro se pushea en la pila al hacer un CALL? Que ocurre al hacer un RET?
+        Al hacer un CALL, se pushea en el stack el valor del Instruction Pointer. Esta dirección entonces es llamada 
+    Instruction Pointer de retorno, y es la dirección a la que se debe volver una vez finalizada la subrutina o llamado. 
+    Al hacer un RET, se realiza lo contrario: se popea el valor del tope de la pila (que es el Instruction Pointer de retorno),
+    y se lo guarda en el registro EIP, para seguir con la instrucción correspondiente luego del llamado de la subrutina.
+
+    d) Qué debe asegurarse el programador antes de llamar a un RET cuando está escribiendo una subrutina?
+        El procesador no lleva rastro de la ubicación del Instruction Pointer de retorno. Es la responsabilidad del programador
+    asegurarse que el stack pointer (registro ESP) se encuentre apuntando al Instruction Pointer de retorno antes de realizar un 
+    RET, ya que esta instrucción popea al EIP lo que esté en la posición apuntada por el ESP. 
+        Una manera común de reiniciar el stack pointer al punto del Instruction Pointer de retorno es mover el contenido del 
+    registro EBP hacia el registro ESP. Si el registro EBP es cargado con el stack pointer inmediatamente luego de un llamado
+    de subrutina, debería apuntar al Instruction Pointer de retorno en el stack. 
+
+    e) Cuál es el ancho de la pila en modo 32 bits y 64 bits?
+        En modo de 32 bits, la pila tiene un ancho de 16 bits. En 64 bits, la pila tiene un ancho de 32 bits. Las instrucciones de 
+    PUSH y POP utilizan la flag D para determinar cuanto incrementar o decrementar el stack pointer en cada operación. 
+        Cuando el ancho de la pila es de 16 bits, el ESP se modifica en incrementos de 16 bits. Cuando el ancho es de 32 bits, el 
+    ESP se modifica en incrementos de 32 bits. Pushear un valor de 16 bits en un stack de 32 bits de ancho puede resultar en un 
+    desalineamiento del stack (el ESP no está alineado a una double-word). El procesador no chequea el alineamiento del ESP. Es la 
+    responsabilidad de los programas, tareas y procedimientos corriendo mantener un correcto alineamiento de los stack pointers.   
+
+    f) Podría el EBP ser usado para guardar datos que no sean la base de la pila?
+        El EBP es un registro de propósito general, por lo que puede utilizarse para guardar cualquier cosa. Sin embargo, 
+    es convención utilizarlo con tal fin, y es importante utilizarlo así para asegurarse de que todos los programas de distintos
+    programadores sean compatibles entre sí (en lo que a la pila respecta).
+
+4) Set de instrucciones
+    a) De las siguientes instrucciones, cuantos operando reciben, de qué tipo y de qué tamaño? Que hace cada una?
+    INC:
+    SUB:
+    XOR:
+    JE:
+    JZ:
+    b) Qué diferencia existe entre JZ y JE?
+
+
+
+
+
+
+
+
+
+
+
