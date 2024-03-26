@@ -69,20 +69,18 @@ Preguntas sobre arquitectura Intel - Grupo 2
 
 4) Set de instrucciones
     a) De las siguientes instrucciones, cuantos operando reciben, de qué tipo y de qué tamaño? Que hace cada una?
-    INC:
-    SUB:
-    XOR:
-    JE:
-    JZ:
+        INC: Recibe un operando, que puede ser un registro o una dirección de memoria. 
+    Suma 1 al operando destino, sin afectar la flag de carry.
+    
+        SUB: Recibe 2 operandos, el destino y la fuente. Resta el segundo (fuente) al primero (destino), y lo guarda en el destino. 
+    El destino puede ser un registro o una posición de memoria. La fuente puede ser un valor inmediato, registro o posición de memoria. 
+    Sin embargo, no pueden utilizarse dos operandos de memoria al mismo tiempo. 
+    
+        XOR: Recibe 2 operandos, el destino y la fuente. Realiza un XOR bit a bit, y guarda el resultado en el destino.
+    El destino puede ser un registro o una posición de memoria. La fuente puede ser un valor inmediato, registro o posición de memoria. 
+    Sin embargo, no pueden utilizarse dos operandos de memoria al mismo tiempo. 
+    
     b) Qué diferencia existe entre JZ y JE?
-
-
-
-
-
-
-
-
-
-
-
+        JE y JZ: Saltos condicionales. Reciben un operando, que es la dirección a saltar en caso de cumplir la condición. 
+    El JE es Jump Equal, salta si los numeros comparados son iguales. El segundo es JZ, salta si luego de realizar una operación
+    aritmética, el resultado es 0. 
