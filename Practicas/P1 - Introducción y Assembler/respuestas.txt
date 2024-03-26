@@ -6,7 +6,7 @@ Preguntas sobre arquitectura Intel - Grupo 2
     La unidad mínima a la que se puede direccionar es a byte.
 
     b) Cuántos registros de propósito general hay en Intel64 y que tamaño tienen?
-        Hay 16 régistros de propósito general, y tienen un tamaño de 64 bits cada uno.
+        Hay 16 registros de propósito general, y tienen un tamaño de 64 bits cada uno.
 
     c) Qué guarda el registro RIP? Qué tamaño tiene y por qué?
         El registro RIP es el Instruction Pointer, y contiene la dirección donde se encuentra la próxima instrucción
