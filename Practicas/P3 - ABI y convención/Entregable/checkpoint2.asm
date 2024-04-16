@@ -17,7 +17,7 @@ global product_9_f
 
 ;########### DEFINICION DE FUNCIONES
 ; uint32_t alternate_sum_4(uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4);
-; registros: x1[?], x2[?], x3[?], x4[?]
+; registros: x1[rdi], x2[rsi], x3[rdx], x4[rcx]
 alternate_sum_4:
 	;prologo
 	push rbp
@@ -68,8 +68,6 @@ alternate_sum_4_using_c:
 	pop rbp
 	ret
 
-
-
 ; uint32_t alternate_sum_4_simplified(uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4);
 ; registros: x1[?], x2[?], x3[?], x4[?]
 alternate_sum_4_simplified:
@@ -81,7 +79,6 @@ alternate_sum_4_simplified:
 	sub rax, rcx 
 
 	ret
-
 
 ; uint32_t alternate_sum_8(uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5, uint32_t x6, uint32_t x7, uint32_t x8);
 ; registros y pila: x1[?], x2[?], x3[?], x4[?], x5[?], x6[?], x7[?], x8[?]
@@ -124,9 +121,12 @@ product_2_f:
 	push rbp
 	mov rbp, rsp
 
+	; cvtsi2ss: Convert Doubleword Integer to Scalar Single Precision Floating-Point Value
 	cvtsi2ss xmm1, rsi ; Convertimos de integer a float
 	mulss xmm0, xmm1  ; Multiplicamos ambos parametros
 
+	; cvttps2dq: Convert With Truncation Packed Single Precision Floating-Point Values to Packed
+	; Signed Doubleword Integer Values
 	cvttps2dq xmm0, xmm0 ; Convertimos de float a integer
 	movd eax, xmm0
 
@@ -153,6 +153,8 @@ product_9_f:
 	;convertimos los flotantes de cada registro xmm en doubles
 	; preguntar dif en la representacion entre doubles y single precision
 
+	; cvtss2sd: Convert Scalar Single Precision Floating-Point Value to Scalar Double Precision
+	; Floating-Point Value
 	cvtss2sd xmm0, xmm0 ;Convierto los floats a double
 	cvtss2sd xmm1, xmm1
 	cvtss2sd xmm2, xmm2
@@ -164,6 +166,7 @@ product_9_f:
 	cvtss2sd xmm8, [rbp + 0x30] ; traemos de memoria el ultimo float y lo convertimos a double tambien
 
 	;multiplicamos los doubles en xmm0 <- xmm0 * xmm1, xmmo * xmm2 , ...
+	; mulsd: Multiply Scalar Double Precision Floating-Point Value
 	mulsd xmm0, xmm1
 	mulsd xmm0, xmm2
 	mulsd xmm0, xmm3
@@ -174,6 +177,7 @@ product_9_f:
 	mulsd xmm0, xmm8
 
 	; convertimos los enteros en doubles y los multiplicamos por xmm0.
+	; cvtsi2sd: Convert Doubleword Integer to Scalar Double Precision Floating-Point Value
 	cvtsi2sd xmm1, rsi
 	cvtsi2sd xmm2, rdx
 	cvtsi2sd xmm3, rcx
