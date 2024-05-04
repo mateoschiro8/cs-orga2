@@ -34,12 +34,12 @@ void listDelete(list_t* pList){
     free(pList);
 }
 
-uint8_t contar_pagos_aprobados(list_t* pList, char* usuario){
-}
+// uint8_t contar_pagos_aprobados(list_t* pList, char* usuario){
+// }
 
-uint8_t contar_pagos_rechazados(list_t* pList, char* usuario){
-}
+// uint8_t contar_pagos_rechazados(list_t* pList, char* usuario){
+// }
 
-pagoSplitted_t* split_pagos_usuario(list_t* pList, char* usuario){
+// pagoSplitted_t* split_pagos_usuario(list_t* pList, char* usuario){
 
-}
+// }
