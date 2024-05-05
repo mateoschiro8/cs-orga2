@@ -5,8 +5,9 @@ extern malloc
 
 section .rodata
 
-%define temploOffsetLargo 0
-%define temploOffsetCorto 16
+%define temploOffsetLargo   0
+%define temploOffsetNombre  8
+%define temploOffsetCorto  16
 
 %define temploSize 24
 
@@ -26,11 +27,13 @@ templosClasicos:
 
     call cuantosTemplosClasicos
 
-    mov rdi, rax ; Rdi -> cant templos clasicos
-    shl rdi, 3   ; Rdi -> cant templos clasicos * tamaño puntero (8)
+    xor r10, r10
+    add r10, temploSize 
+    mul r10   ; Rax -> cant templos clasicos * tamaño cada templo (24)
+    mov rdi, rax
     call malloc
-
-    ; rax -> puntero al array de templos clasicos
+    mov r11, rax
+    ; r11 -> puntero al array de templos clasicos
 
     mov rdi, r12  ; Restauro datos
     mov rsi, r13
@@ -51,8 +54,16 @@ templosClasicos:
         cmp r8, r9   
         jne .siguiente  ; Si no son iguales
 
-        mov [rax], rdi
-        add rax, temploSize
+        mov r10, [rdi + temploOffsetLargo]
+        mov [r11 + temploOffsetLargo], r10
+
+        mov r10, [rdi + temploOffsetNombre]
+        mov [r11 + temploOffsetNombre], r10
+
+        mov r10, [rdi + temploOffsetCorto]
+        mov [r11 + temploOffsetCorto], r10        
+
+        add r11, temploSize
 
         .siguiente:
             add rdi, temploSize
