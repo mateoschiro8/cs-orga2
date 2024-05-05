@@ -1,0 +1,55 @@
+== Ejercicio 1a ==
+
+Clásicos 0: 27
+Clásicos 1: 20
+Clásicos 2: 28
+Clásicos 3: 26
+Clásicos 4: 21
+Clásicos 5: 28
+Clásicos 6: 21
+Clásicos 7: 20
+Clásicos 8: 26
+Clásicos 9: 34
+Clásicos 10: 12
+Clásicos 11: 19
+Clásicos 12: 27
+Clásicos 13: 26
+Clásicos 14: 24
+Clásicos 15: 22
+Clásicos 16: 28
+Clásicos 17: 24
+Clásicos 18: 28
+Clásicos 19: 29
+Clásicos 20: 32
+Clásicos 21: 31
+Clásicos 22: 25
+Clásicos 23: 28
+Clásicos 24: 19
+Clásicos 25: 25
+Clásicos 26: 23
+Clásicos 27: 27
+Clásicos 28: 23
+Clásicos 29: 26
+Clásicos 30: 23
+Clásicos 31: 17
+Clásicos 32: 31
+Clásicos 33: 32
+Clásicos 34: 23
+Clásicos 35: 23
+Clásicos 36: 28
+Clásicos 37: 21
+Clásicos 38: 21
+Clásicos 39: 24
+Clásicos 40: 27
+Clásicos 41: 22
+Clásicos 42: 31
+Clásicos 43: 27
+Clásicos 44: 19
+Clásicos 45: 21
+Clásicos 46: 22
+Clásicos 47: 26
+Clásicos 48: 27
+Clásicos 49: 30
+
+== Ejercicio 1b ==
+
