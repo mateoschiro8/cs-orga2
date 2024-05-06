@@ -70,7 +70,7 @@ void test_ej2(char* filename) {
         NL(filename)
     }
 
-
+    
     RUN(filename, fprintf(pfile, "\n== Distinto(random) ==\n");) NL(filename)
 
     func_coincidencia((uint8_t*)a,(uint8_t*)b,N,result);
@@ -103,7 +103,7 @@ void test_ej2(char* filename) {
         }
         NL(filename)
     }
-
+    
     free(result);
 }
 
