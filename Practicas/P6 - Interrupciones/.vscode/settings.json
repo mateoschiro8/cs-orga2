@@ -1,6 +1,0 @@
-{
-    "files.associations": {
-        "screen.h": "c",
-        "idt.h": "c"
-    }
-}
