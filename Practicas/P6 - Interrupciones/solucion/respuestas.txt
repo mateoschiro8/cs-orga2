@@ -1,0 +1,31 @@
+https://docs.google.com/spreadsheets/d/1lHLmEvXKtG8BvrTMoPCrvTwASWnYP8e7XWrxqeo5YRY/edit
+
+1) Explorando el manual Intel Volumen 3: System Programming. Sección 2.2 Modes of Operation. ¿A qué nos
+referimos con modo real y con modo protegido en un procesador Intel? ¿Qué particularidades tiene cada
+modo?
+
+.Modo real: Provee el entorno de programación del procesador Intel 8086, con algunas extensiones (como la habilidad de cambiar de modos). 
+En este modo se arma la GDT antes de pasar al modo protegido. 
+.Modo protegido: Modo de operación nativo del procesador. Provee un gran conjunto de features arquitecturales, flexibilidad,
+alta performance y compatibilidad para atras para software ya existente
+
+2) Comenten en su equipo, ¿Por qué debemos hacer el pasaje de modo real a modo protegido? ¿No podríamos
+simplemente tener un sistema operativo en modo real? ¿Qué desventajas tendría?
+
+El problema con trabajar en modo real es que, ademas de poseer menor espacio de direccionamiento que modo protegido,
+no posee protección en memoria ni niveles de privilegio
+
+3) Busquen el manual volumen 3 de Intel en la sección 3.4.5 Segment Descriptors. ¿Qué es la GDT? ¿Cómo es
+el formato de un descriptor de segmento, bit a bit? Expliquen para qué sirven los campos Limit, Base, G, P,
+DPL, S. También puede referirse a la teórica slide 30. Manejo de memoria
+
+La GDT (global descriptor table) es una tabla global que contiene los descriptores de segmentos. Los descriptores de segmento
+son estructuras que proveen al procesador el tamaño y la ubicación de un segmento, así como el control de acceso 
+y la información de su estado.
+
+Cada descriptor de segmento posee:
+    - Una dirección base, a partir de la cual se despliega en forma continua el segmento
+    - Un limite, que es el máximo offset que puede tener un byte direccionable dentro del segmento
+    - Una granularidad, que establece la unidad de medida del campo límite. Si G = 0, el maximo offset de un byte es igual a límite.
+    Si G = 1, el maximo offset es igual a Límite * 0x1000 + 0xFFF.
+
