@@ -1,0 +1,94 @@
+------ Ejercicio 1
+
+En un sistema similar al que implementamos en los talleres del curso (modo protegido con paginación activada),
+se quiere implementar un servicio tal que cualquier tarea del sistema lo pueda invocar mediante la siguiente instrucción:
+    int 100
+
+Recibirá los siguientes parámetros (en ese orden):
+- uint32_t virt, una dirección de página virtual
+- uint32_t phy, una dirección de página física
+- uint16_t task_sel, un selector de segmento que apunta a un descriptor de TSS en la GDT.
+
+Para pasar los parámetros a este servicio, se puede escoger una convención arbitraria.
+
+El servicio en cuestión forzará la ejecución de código comenzando en la dirección física phy, mapeado en virt.
+Tanto la tarea actual como la tarea que sera pasada como parámetro (indicada por su task_sel) deben realizar la ejecucion de la pagina física en cuestión.
+Para eso, dicho servicio deberá:
+- Realizar los mapeos necesarios
+- Modificar los campos necesarios para que la tarea determinada por task_sel, retome su ejecución en la posición establecida la próxima vez que se conmute a ella.
+- Modificar los campos necesarios para que la tarea actual, retome su ejecución en la posición establecida una vez completada la llamada
+
+Se pide:
+a) Definir o modificar las estructuras de sistema necesarias para que dicho servicio pueda ser invocado
+b) Implementar dicho servicio (pseudocódigo)
+c) Dar un ejemplo de invocación de dicho servicio
+
+Detalles de implementación:
+- El código en cuestión a donde se salta es de nivel 3.
+- Los punteros a las pilas de nivel 3 de ambas tareas y el puntero a la pila de nivel 0 de la tarea pasada por parámetro, 
+deberán ser reinicializados a la base de la pila, teniendo en cuenta que las mismas comienzan al final de la página y no se extienden más que 4096 bytes.
+- Asumir que todas las tareas ya fueron alojadas al menos una vez y que el cambio de tareas se hace en la rutina de interrupción de reloj, como en el taller
+
+--- Resolucion
+
+Para cambiar el codigo que ejecutan ambas tareas: 
+
+1 - Mapear el codigo de la direccion fisica a las direc virtuales de cada tarea
+2 - Reiniciar los punteros de ambos stacks
+3 - Limpiar registros? (hacemos de cuenta que no hace falta)
+4 - Hacer que el EIP de ambas tareas apunte al comienzo del nuevo codigo (el EIP tiene direccion virtual)
+
+a) Necesitamos hacer una entrada en la IDT para la interrupcion 100. A su vez, esta entrada debe ser un selector que apunte a una entrada de la GDT
+que va a ser la que contiene la RAI. La entrada de la IDT debe tener RPL3 , la de la GDT RPL0, ambas present.
+
+b) 
+Parametros:
+    eax = virt
+    ebx = phy
+    ecx = task_sel
+
+global _isr100
+
+_isr100:
+    
+    ; pasaje de parametros
+    push eax
+    push ebx
+    push ecx
+    call cambio_de_codigo   ; Funcion que mapea la pagina de codigo de phy en la direccion virt de ambas tareas
+    mov [esp + 12], esp_direccion_base
+    mov [esp], eax ; ahora el eip que va a popear iret apunta al inicio del nuevo codigo
+
+    mov esp, inicio_stack_niv_0 ; ahora el esp de nivel 0 apunta al principio de la pila
+
+    iret
+
+mmu_map_page(uint32_t cr3, vaddr_t virt, paddr_t phy, uint32_t attrs)
+
+
+void cambio_de_codigo(vaddr_t virt, paddr_t phy, uint16_t task_sel){
+    uint32_t cr3_actual = rcr3(); // cr3 de la tarea actual, se podria hacer un acceso a la tss tmb usando tss_tasks[current_task]
+    
+    tss* tss_tarea_parametro = get_tss_direction(gdt[task_sel >> 3]); // recibe una entrada de la gdt y devuelve la base de la tss
+    cr3_tarea_parametro = tss_tarea_parametro.cr3;
+
+    uint32_t attrs = MMU_P | MMU_U | ¬MMU_W; // esta present, user, y readonly
+    
+    // mapea ambas paginas.
+    mmu_map_page(cr3_tarea_parametro, virt, phy, attrs);
+    mmu_map_page(cr3_actual, virt, phy, attrs);
+    
+    // seteamos todo para la tarea parametro (offset son 24 y 12 xq le sumamos 12 por los 3 parametros q pusheamos antes al stack)
+    uint32_t* esp0_tarea_parametro =  tss_tarea_parametro.esp; // este esp es el de niv 0
+    esp0_tarea_parametro[24] = esp_direccion_base; // reiniciamos el puntero de la tarea al inicio que es una direc default en nuestro taller (STACK_VIRTUAL_ADDR)
+    esp0_tarea_parametro[12] = virt; // el EIP ahora apunta al inicio del nuevo codigo.
+
+}
+
+tss* get_tss_direction(gdt_entry_t selector){
+    uint32_t base_addr = selector.base_31_24 << 24 |
+                         selector.base_23_16 << 16 |
+                         selector.base_16_0;
+
+    return (tss*) base_addr;
+}

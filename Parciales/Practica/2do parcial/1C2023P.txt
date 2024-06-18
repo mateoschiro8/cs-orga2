@@ -1,0 +1,138 @@
+------ Ejercicio 1
+
+En un sistema similar al que implementamos en los talleres del curso (modo protegido con paginación activada), 
+se tienen 5 tareas en ejecución y una sexta que procesa los resultados enviados por las otras. 
+Cualquiera de estas 5 tareas puede en algún momento realizar una cuenta y enviar el resultado de la misma a la sexta tarea para que lo utilice de manera inmediata. 
+Para ello la tarea que realizó la cuenta guardará el resultado de la misma en EAX. A continuación, la tarea que hizo la cuenta le
+cederá el tiempo de ejecución que le queda a la tarea que va procesar el resultado (lo recibirá en EAX). 
+Tener en cuenta que la tarea que hizo la cuenta no volverá a ser ejecutada hasta que la otra tarea no haya terminado de utilizar el resultado de la operación realizada.
+Se desea agregar al sistema una syscall para que la tareas después de realizar la cuenta en cuestión puedan cederle el tiempo de ejecución a la tarea que procesará el resultado.
+
+a) Definir o modificar las estructuras de sistema necesarias para que dicho servicio pueda ser invocado.
+b) Implementar la syscall que llamarán las tareas.
+c) Dar el pseudo-código de la tarea que procesa resultados (no importa como lo procese).
+d) Mostrar un pseudo-código de la función sched_next_task para que funcione de acuerdo a las necesidades de este sistema.
+e) Responder: ¿Qué problemas podrían surgir dadas las modificaciones al sistema? ¿Cómo lo solucionarías?
+
+Detalles de implementación:
+- Las 5 tareas originales corren en nivel 3.
+- La sexta tarea tendrá nivel de privilegio 0.
+
+Nuestro sistema va a funcionar así:
+    - El scheduler va a tener las tareas 1, 2, 3, 4, 5 y 6, y va a loopear entre ellas. La 6 va a arrancar pausada.
+    - Cuando una tarea [1 - 5] utiliza la syscall para avisarle a la tarea 6, la primera será pausada, de manera que al terminar su tiempo de ejecución actual, 
+    no volverá a ejecutarse hasta que la tarea 6 no termine de procesar sus resultados. En su lugar, la tarea 6 estará habilitada para ejecutarse.
+    - Una vez que la tarea 6 termina de procesar el resultado será pausada de vuelta, y la tarea que la llamó será despausada, para volver a ejecutarse.
+
+    Ej:
+        [1,2,3,4,5] scheduler cuando no termino ninguna
+        [2,3,4,5,6] scheduler cuando termino la 1
+
+    la 1 termina
+
+    syscall 
+
+    deshabilita la 1
+    habilita la 6
+    le pone en la tss de la 6 rax con el valor a calcular
+    le pone en la tss edx el task id de la que la llamo
+    
+A) Para implementar este sistema, además de los segmentos de la GDT (datos y codigo nivel 0 y 3), a nuestro sistema deberíamos agregarle una entrada en la idt y en la gdt,
+para definir la rutina de atención de la nueva interrupción que agregamos. 
+    Ademas, las TSS de las tareas van a ser modificadas con un nuevo campo, pero este nuevo campo solo va a ser utilizado por la tarea 6 (las otras lo tendrán en 0).
+Este campo contiene el id de la tarea que llamó a la tarea 6, para saber a quien habilitar una vez finalizado el procesamiento de los resultados.
+
+B) El funcionamiento es el siguiente:
+    Al llegar la interrupción, se llama a deshabilitar la tarea actual. Luego, se pushea el id de la tarea 6, para pasarlo como parámetro a la función que habilita tareas.
+Luego, se pushea el id de la tarea actual y el resultado del calculo, para pasarlos a la funcion que los guarda en la TSS de la tarea 6. El resultado es para que sea procesado,
+y el id de la llamadora es para saber a quien habilitar una vez que la tarea 6 finalice. Por ultimo, cambiamos de tarea y saltamos a la tarea 6. 
+
+    global _isr102
+
+    _isr102:
+
+        pushad ; contexto de la tarea llamadora ([1-5])
+
+        call sched_disable_current ; desactiva la tarea actual
+        push id_tarea_6 ; id de la
+
+        call sched_task_enable ; activa la tarea 6
+        add esp, 4
+
+        push id_tarea_actual
+        push eax ; resultado del calculo
+        call actualizar_tss_tarea6_con_id_llamadora_y_resultado
+        add esp, 8
+        jmp far selector6:offset
+        popad 
+        iret
+    
+    
+C)  
+    void actualizar_tss_tarea6_con_id_llamadora_y_resultado(uint8_t resultado_calculo, uint8_t id_tarea_llamadora){
+        tss_tasks[6].eax = resultado_calculo; // Indexamos desde 1
+        tss_tasks[6].id_tarea_llamadora = id_tarea_llamadora;
+    }
+
+    void tarea_6(){
+        uint8_t resultado = {... procesa el resultado ...};
+        
+        // una vez que ya esta procesado, hay que mandar el resultado a la tss de la tarea llamadora en su eax, habilitarla en el sched
+        // y deshabilitar otra vez la tarea 6.
+
+        // estamos asumiendo que la tarea 1 espera el resultado en EAX para continuar su ejecucion, en caso de que no lo esperara no hace falta
+        // pisar el EAX de la llamadora y simplemente hay que habilitarla nuevamente y deshabilitar la 6.
+
+        uint8_t id_tarea_llamadora = tss_tasks[6].id_tarea_llamadora;
+        tss_tasks[id_tarea_llamadora].eax = resultado;
+        sched_task_enable(id_tarea_llamadora); // habilitamos otra vez la tarea que nos habia llamado
+        sched_disable_current; // estamos en la 6, se deshabilita la 6 justamente (TIENE QUE ESTAR SI O SI AL FINAL XQ SI EL CLOCK JUSTO NOS CORTA EN LA DE ARRIBA NO SE VUELVE A HABILITAR LA LLAMADORA.)
+    }
+
+D) En nuestro caso, no es necesario hacer ningun cambio a sched_next_task dado que nos encargamos de habilitar y deshabilitar las tareas para que no puedan ser seleccionadas por el scheduler.
+
+E) Podria suceder que una tarea haya llamado a la 6, que la 6 no logre terminar el calculo antes del proximo clock, y por lo tanto el scheduler cambie de tarea. 
+Luego de esto, alguna de las otras 4 tareas podria querer llamar a la 6 y, como esta ya se encuentra procesando un resultado, no deberia poder atenderla. 
+Sin embargo, en este sistema lo va a hacer, lo cual va a ocasionar que la tss de la 6 se modifique, haciendo que el sistema no funcione de la manera esperada.
+Para solucionar esto, deberiamos implementar algun mecanismo que no permita que se llame a la 6 cuando esta se encuentra ocupada. 
+
+Aprovechando que en nuestra resolucion la tarea 6 "desaparece" de las tareas habilitadas en el scheduler cuando no esta siendo utilizada, 
+antes de que otra tarea le modifique la tss podriamos chequear si se encuentra habilitada o no. Ademas, en caso de que no se pueda hacer el llamado a
+a la tarea 6, deberiamos hacer que la tarea "espere" hasta que pueda llamar a la 6. 
+Una forma simple de hacer esto es modificar la isr, de forma que antes de que se dispare el proceso de habilitar la tarea 6 y deshabilitar la actual, 
+se chequee la condicion mencionada antes. En caso de que no se encuentre disponible la tarea 6, podemos loopear hasta que la misma se encuentre disponible. 
+En pseudocodigo de asm, seria algo asi: 
+
+        .chequear_si_se_puede_usar:
+            call se_puede_usar_tarea_6 ; devuelve 1 o 0 por rax, representando true o false
+            cmp rax, 1 ; 1 true, 0 false
+            jne .chequear_si_se_puede_usar
+
+    (se_puede_usar_tarea_6 chequea si la tarea 6 se encuntra habilitada (está ocupada = no se puede) o pausada (está libre = se puede))
+
+Un problema que surgiria de esta implementacion es que no se respeta el orden en el que se solicito la tarea 6, ya que depende de donde esta el scheduler cuando termina la tarea 6, 
+seria mas eficiente implementar algo del estilo de una queue que preserve el orden de las tareas que llamaron a la 6.
+
+------ Ejercicio 2
+
+Asumiendo que phy es justamente el comienzo de la pagina y no una parte random de ella:
+
+uint8_t Escribir_a_Disco(int32_t cr3, paddr_t phy){
+    
+    pd = sacamos pd de cr3 limpiandolo como corresponde;
+    // iterar todo el page directory
+    for(int8_t i=0; i<1024; i++){
+        if(pd[i] tiene el bit de present en 1){
+            
+            // iterar todas las entradas de la page table
+            for(int8_t j=0; j<1024; j++){
+                if(pd[i].pt[j] tiene el bit de present en 1){
+                    if(phy es igual a pd[i].pt[j].page && pd[i].pt[j] tiene el bit de dirty en 1 (la modifico la tarea actual)) {
+                        return 0;
+                    }
+                }
+            }
+        }
+    }
+    return 1;
+}
