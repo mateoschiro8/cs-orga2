@@ -1,0 +1,86 @@
+
+1) Si queremos definir un sistema que utilice sólo dos tareas, ¿Qué nuevas estructuras, cantidad de 
+nuevas entradas en las estructuras ya definidas, y registros tenemos que configurar?¿Qué formato 
+tienen? ¿Dónde se encuentran almacenadas?
+
+Tenemos que definir dos nuevas entradas en la GDT, que van a tener cada una un descriptor del TSS de cada tarea.
+El TSS (Task State Segment) es un segmento de memoria que almacena el contexto en el que se estaba ejecutando
+una tarea al momento de ser desalojada. Contiene, entre otras cosas, los registros de propósito general, 
+las flags, el esp, ebp, eip, el cr3 y los registros de segmento.
+
+Los descriptores de TSS tienen un formato similar a los descriptores de segmento. Algunos campos importantes
+son: 
+    .Bit B (Busy): indica si la tarea está siendo ejecutada. Lo iniciamos en 0.
+    .Bits DPL (Descriptor Privilege Level): el nivel de privilegio que se preisa para acceder al segmento.
+    Usamos nivel 0 porque solo el kernel puede intercambiar tareas.
+    .Campo Limit: tamaño máximo de la TSS. 0x67 es el mínimo requerido.
+    .Campo Base: dirección base de la TSS. 
+
+2) ¿A qué llamamos cambio de contexto?¿Cuándo se produce?¿Qué efecto tiene sobre los registros 
+del procesador? Expliquen en sus palabras que almacena el registro TR y cómo obtiene la 
+información necesaria para ejecutar una tarea después de un cambio de contexto.
+
+El cambio de contexto se produce al desalojar una tarea y comenzar (o continuar) la ejecución de otra.
+En este cambio, se guarda el contexto de ejecución actual en el TSS de la tarea que está siendo ejecutada, 
+y se carga el TSS de la próxima tarea a ejecutar (actualizando el valor de todos los registros que lo componen).  
+
+El registro TR (en su parte visible) contiene el selector que apunta el descriptor (en la GDT) del TSS de la tarea
+que está siendo ejecutada. Para hacer un cambio de tarea, el scheduler le indica al procesador en qué descriptor 
+de TSS se encuentra la próxima tarea a ejecutar, y este último se encarga (luego de guardar el TSS de la tarea
+anterior) de actualizar el TR con este nuevo valor.
+
+3) Al momento de realizar un cambio de contexto el procesador va almacenar el estado actual de 
+acuerdo al selector indicado en el registro TR y ha de restaurar aquel almacenado en la TSS cuyo 
+selector se asigna en el jmp far. ¿Qué consideraciones deberíamos tener para poder realizar el 
+primer cambio de contexto? ¿Y cuáles cuando no tenemos tareas que ejecutar o se encuentran 
+todas suspendidas?
+
+Necesitamos dos pasos para dejar al kernel listo para ejecutar las
+tareas que querramos:
+1. Apenas inicia el kernel hay que cargar la tarea Inicial. Para
+hacerlo, vamos a usar la instruccion LTR que toma como
+parametro un registro de 16 bits con el selector de la tarea en
+la GDT.
+LDTR ax ; (con ax = selector segmento tarea inicial)
+2. Luego, hay que saltar a la tarea Idle. La forma de hacerlo es
+saltar al selector con un JMP y el valor que pongamos en
+offset es ignorado (podemos poner 0).
+JMP SELECTOR TAREA IDLE:0
+Esto va a cambiar el valor del registro TR apuntando a la TSS de
+la tarea Idle y producir el cambio de contexto. Saltar a una tarea es
+algo que lo va a hacer el Sistema Operativo en nivel 0. 
+
+Al quedarnos sin tareas para ejecutar, el scheduler va a poner como proxima tarea a ejecutar la tarea Idle.
+
+4) ¿Qué hace el scheduler de un Sistema Operativo? ¿A qué nos referimos con que usa una política?
+
+El sistema operativo va a implementar un modulo de software que se va a encargar de decidir que tarea ejecutar en cada
+tic del reloj: el scheduler. El scheduler administra la ejecucion de tareas / procesos. 
+Utiliza una politica o criterio para decir cual es la proxima tarea a ejecutar.
+
+5) En un sistema de una única CPU, ¿cómo se hace para que los programas parezcan ejecutarse en 
+simultáneo?
+
+Para que parezca que los programas se están ejecutando en simultáneo, la CPU alterna el programa ejecutandose 
+en cada momento de, realizando muchos cambios en poco tiempo.  
+
+18) Por qué se definen 2 tipos de tareas? Como harían para ejecutar una tarea distinta? 
+Cambien la tarea Snake por una tarea PongScoreboard
+
+Se definen distintos tipos de tareas para poder hacer que haya tareas con código distinto. Por cada tipo de tarea
+que hay, hay una dirección distinta donde arranca el código. Para poder cambiar de tarea, podemos modificar el 
+makefile con el archivo .tsk de la tarea que queremos correr   
+
+19) Mirando la tarea Pong, ¿En que posición de memoria escribe esta tarea el puntaje que
+queremos imprimir? ¿Cómo funciona el mecanismo propuesto para compartir datos entre tareas?
+
+En la dirección de la memoria compartida, cada tarea utiliza su task_id como offset para escribir su puntaje,
+y no pisarse los valores entre ellas. Para poder compartir datos entre tareas, todas tienen acceso a la memoria
+compartida.
+
+void update_shared_record_score(pong* pong) {
+	uint8_t task_id = ENVIRONMENT->task_id;
+	uint32_t* current_task_record = (uint32_t*) SHARED_SCORE_BASE_VADDR + ((uint32_t) task_id * sizeof(uint32_t)*2);
+	current_task_record[0] = pong->player1.score;
+	current_task_record[1] = pong->player2.score;
+}

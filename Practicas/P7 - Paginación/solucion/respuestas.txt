@@ -1,0 +1,65 @@
+a) Cuantos niveles de privilegio podemos definir en las estructuras de paginacion?
+    Podemos definir 2 niveles de privilegio, usuario y supervisor.
+
+b) Como se traduce una direccion logica en una direccion fisica? Como participan la direccion logica,
+el registro de control CR3, el directorio y la tabla de paginas?
+Recomendacion: describan el proceso en pseudocodigo
+
+Direccion Logica: (A la que llegamos mediante la segmentacion)
+- Los 10 bits mas altos: que entrada del directorio de paginas
+usamos para buscar la tabla de paginas (pd index).
+- Los 10 bits siguientes: que entrada de la tabla de paginas
+usamos para buscar la pagina fisica (pt index).
+- Los 12 bits mas bajos: el desplazamiento dentro de la pagina
+fisica encontrada (page offset).
+
+Registro CR3: Contiene la direccion fisica del directorio de paginas del proceso en ejecucion. 
+Cada proceso tiene su propio valor de CR3, que se actualiza al cambiar de contexto 
+(cuando el sistema operativo cambia de un proceso a otro).
+
+Una vez que tenemos la direccion logica, junto con el CR3, buscamos el directorio correspondiente al proceso 
+y empezamos a buscar la pagina filtrando segun la direccion logica. 
+
+c) Cual es el efecto de los siguientes atributos en las entradas de la tabla de paginas?
+- D: Dirty. Indica que la pagina ha sido modificada. 
+- A: Accedido. Se setea cada vez que la pagina es accedida.
+- PCD: Page-Level Cache Disable. Establece que una pagina integre el tipo de memoria no cacheable.
+- PWT: Page-Level Write Through. Establece el modo de escritura que tendra la pagina en el cache.
+- U/S: User / Supervisor. Privilegio de la pagina. 0 es supervisor (Kernel), 1 es usuario. 
+- R/W: Readable / Writable. Establece si la pagina es ReadOnly (0) o si puede ser escrita (1)
+- P: Present. Indica si la pagina esta en la memoria (1), generando una excepcion #PF 
+cuando se intenta acceder a una pagina no presente (0)
+
+d) Que sucede si los atributos U/S y R/W del directorio y de la tabla de paginas difieren? 
+Cuales terminan siendo los atributos de una pagina determinada en ese caso? 
+Hint: buscar la tabla Combined Page-Directory and Page-Table Protection del manual 3 de Intel
+    Si los atributos U/S difieren, la pagina queda con privilegio supervisor.
+    Si los atributos R/W difieren: Si alguno de los dos es supervisor, el resultado es Read/Write.
+        Si ninguno de los dos es supervisor, si ninguno de los dos es ReadOnly, entonces es Read/Write.
+
+e) Suponiendo que el codigo de la tarea ocupa dos paginas y utilizaremos una pagina para la pila de la tarea. 
+Cuantas paginas hace falta pedir a la unidad de manejo de memoria para el directorio, 
+tablas de paginas y la memoria de una tarea?
+    Hace falta pedir:
+    - 1 para el directorio
+    - 1 para la tabla de paginas que nos permite administrar hasta 1024 paginas de 4kb
+    - 2 para el codigo, que van a estar referenciadas por la tabla de paginas
+    - 1 para el stack. Utilizamos la misma paginacion para la pagina de la pila.
+
+g) Que es el buffer auxiliar de traduccion (translation lookaside buffer o TLB) 
+y por que es necesario purgarlo (tlbflush) al introducir modificaciones a nuestras estructuras 
+de paginacion (directorio, tabla de paginas)? Que atributos posee cada traduccion en la TLB? 
+Al desalojar una entrada determinada de la TLB, se ve afectada la homologa en la tabla
+original para algun caso?
+
+Es una region de memoria utilizada para memorizar las direcciones fisicas a las que accedimos 
+recientemente encontradas gracias a la paginacion. 
+Debemos purgarlo luego de modificar alguna estructura de paginacion, dado que al haber cacheado la direccion previa,
+cuando introducimos el cambio a nuestra estructura estamos invalidando esa direccion que habia sido previamente almacenada
+por la TLB. Entonces, debemos limpiar esa direccion de modo que en el proximo acceso a esa pagina se actualice el valor por el
+correspondiente al cambio.
+Cada traduccion en la TLB posee unos bits de control que por lo general son los atributos de la pagina seleccionada,
+mas otros que no estan documentados (pero siendo un cache, imaginamos que son utilizados para determinar cual es el
+proximo elemento a ser desalojado).
+Creemos que desalojar uan entrada de la TLB, su entrada en la tabla original no es afectada, ya que la TLB funciona
+como una memoria cache.
